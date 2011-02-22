@@ -63,8 +63,7 @@ class gmail_messages:
                                                                 #we need to know which owns the message
         
                     message.date = headers['Date']
-                    message.From = headers['From']
-                    print email.message_from_string(message.From)
+                    message.From = headers['From']                    
                     if( 'Subject' in headers ):
                         message.Subject = headers['Subject']
                         
