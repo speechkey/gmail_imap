@@ -109,3 +109,10 @@ class gmail_messages:
         message.date = msg['Date']
         
         return message
+        
+    def deleteMessage(self, uid):
+        if( not self.server.loggedIn):
+            self.server.login()
+                
+        self.server.imap_server.store(uid, '+FLAGS', '\\Deleted')
+        self.server.imap_server.expunge()

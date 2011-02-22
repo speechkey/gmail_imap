@@ -1,4 +1,11 @@
-import imaplib
+import imaplib, sys
+from smtplib import  SMTP       # this invokes the secure SMTP protocol (port 465, uses SSL)        
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+from email.MIMEText import MIMEText
+from email import Encoders
+
+
 import gmail_mailboxes, gmail_messages, gmail_message
 
 class gmail_imap:
@@ -20,9 +27,39 @@ class gmail_imap:
         self.imap_server.close()
         self.imap_server.logout()
         self.loggedIn = False
-        
+                                
 
-        
+    def sendmail(self, destination, subject, message, attach = None):        
+        try:
+            msg = MIMEMultipart()
+
+            msg['From'] = self.username
+            msg['Reply-to'] = self.username
+            msg['To'] = destination
+            msg['Subject'] = subject
+
+            msg.attach(MIMEText(message))
+
+            if attach:
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(open(attach, 'rb').read())
+                Encoders.encode_base64(part)
+                part.add_header('Content-Disposition',
+                'attachment; filename="%s"' % os.path.basename(attach))
+                msg.attach(part)
+
+            mailServer = SMTP("smtp.gmail.com", 587)
+            mailServer.ehlo()
+            mailServer.starttls()
+            mailServer.ehlo()
+            try:
+                mailServer.login(self.username, self.password)
+                mailServer.sendmail(self.username, destination, msg.as_string())
+            finally:
+                mailServer.close()
+        except Exception, exc:
+            sys.exit("Failed to send mail; %s" % str(exc))
+            
 if __name__ == '__main__':
     import getpass
 
