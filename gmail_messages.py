@@ -1,6 +1,7 @@
 import email, string, re
 from email.parser import HeaderParser
 import gmail_imap,gmail_mailboxes,gmail_message
+import email 
 
 class gmail_messages:
     
@@ -63,6 +64,7 @@ class gmail_messages:
         
                     message.date = headers['Date']
                     message.From = headers['From']
+                    print email.message_from_string(message.From)
                     if( 'Subject' in headers ):
                         message.Subject = headers['Subject']
                         
@@ -113,6 +115,10 @@ class gmail_messages:
     def deleteMessage(self, uid):
         if( not self.server.loggedIn):
             self.server.login()
-                
-        self.server.imap_server.store(uid, '+FLAGS', '\\Deleted')
-        self.server.imap_server.expunge()
+
+        result = self.server.imap_server.uid('COPY', uid, '[Gmail]/Trash')
+
+        if result[0] == 'OK':
+            mov, data = self.server.imap_server.uid('STORE', uid , '+FLAGS', '(\Deleted)')
+            self.server.imap_server.expunge()                    
+        
